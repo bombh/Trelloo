@@ -1,3 +1,4 @@
+import { useCallback, useMemo, useRef, useState } from "react"
 import { Text, View, StyleSheet, Image, TouchableOpacity } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import * as WebBrowser from "expo-web-browser"
@@ -5,12 +6,21 @@ import { useActionSheet } from "@expo/react-native-action-sheet"
 import { BottomSheetModal, BottomSheetModalProvider, BottomSheetBackdrop } from "@gorhom/bottom-sheet"
 
 import { Colors } from "@/constants/Colors"
+import AuthModal from "../components/AuthModal"
 
 export default function Index() {
    const { top } = useSafeAreaInsets()
    const { showActionSheetWithOptions } = useActionSheet()
 
+   const bottomSheetModalRef = useRef(null)
+   const snapPoints = useMemo(() => ["35%"], [])
+
+   const [authType, setAuthType] = useState(null)
+
    const showModal = async (type) => {
+      setAuthType(type)
+      bottomSheetModalRef.current?.present()
+
       console.log("type", type)
    }
 
@@ -35,6 +45,19 @@ export default function Index() {
       )
    }
 
+   const renderBackdrop = useCallback(
+      (props) => (
+         <BottomSheetBackdrop
+            opacity={0.5}
+            appearsOnIndex={0}
+            disappearsOnIndex={-1}
+            {...props}
+            onPress={() => bottomSheetModalRef.current?.close()}
+         />
+      ),
+      []
+   )
+
    return (
       <BottomSheetModalProvider>
          <View
@@ -52,6 +75,7 @@ export default function Index() {
             <Text style={styles.introText}>Move teamwork forward !</Text>
 
             <View style={styles.bottomContainer}>
+               {/* Log In / Sign Up buttons */}
                <TouchableOpacity
                   style={[styles.btn, { backgroundColor: "#FFF" }]}
                   onPress={() => showModal("login")}
@@ -66,6 +90,7 @@ export default function Index() {
                   <Text style={[styles.btnText, { color: "#fff" }]}>Sign Up</Text>
                </TouchableOpacity>
 
+               {/* Description and Privacy */}
                <Text style={styles.description}>
                   By signing up, you confirm that you've read and accepted our{" "}
                   <Text
@@ -91,6 +116,18 @@ export default function Index() {
                </TouchableOpacity>
             </View>
          </View>
+
+         <BottomSheetModal
+            ref={bottomSheetModalRef}
+            index={0}
+            snapPoints={snapPoints}
+            handleComponent={null}
+            enableOverDrag={false}
+            enablePanDownToClose={true}
+            backdropComponent={renderBackdrop}
+         >
+            <AuthModal authType={authType} />
+         </BottomSheetModal>
       </BottomSheetModalProvider>
    )
 }

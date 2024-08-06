@@ -2,6 +2,8 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import React from "react"
 import { BottomSheetView } from "@gorhom/bottom-sheet"
 import { Ionicons } from "@expo/vector-icons"
+import { useOAuth, useSignIn, useSignUp } from "@clerk/clerk-expo"
+import { useBrowserWarmUp } from "@/hooks/useBrowserWarmUp"
 
 // Strategies for authentication
 const AuthStrategy = {
@@ -35,15 +37,90 @@ const LOGIN_OPTIONS = [
 ]
 
 const AuthModal = ({ authType }) => {
+   // Warm up the browser
+   useBrowserWarmUp()
+
+   // Sign up and sign in hooks
+   const { signUp, setActive } = useSignUp()
+   const { signIn } = useSignIn()
+
+   // Handle selected authentication strategy
+   const { startOAuthFlow: googleAuth } = useOAuth({ strategy: AuthStrategy.Google })
+   const { startOAuthFlow: microsoftAuth } = useOAuth({ strategy: AuthStrategy.Microsoft })
+   const { startOAuthFlow: appleAuth } = useOAuth({ strategy: AuthStrategy.Apple })
+   const { startOAuthFlow: slackAuth } = useOAuth({ strategy: AuthStrategy.Slack })
+
    const onSelected = async (strategy) => {
       console.log("strategy", strategy)
-      // TODO: Implement authentication logic with Clerk
+
+      // Select the authentication strategy
+      const selectedAuth = {
+         [AuthStrategy.Google]: googleAuth,
+         [AuthStrategy.Microsoft]: microsoftAuth,
+         [AuthStrategy.Slack]: slackAuth,
+         [AuthStrategy.Apple]: appleAuth,
+      }[strategy]
+
+      // Start the OAuth flow
+      // https://clerk.com/docs/custom-flows/oauth-connections#o-auth-account-transfer-flows
+      // If the user has an account in your application, but does not yet
+      // have an OAuth account connected to it, you can transfer the OAuth
+      // account to the existing user account.
+      const userExistsButNeedsToSignIn =
+         signUp.verifications.externalAccount.status === "transferable" &&
+         signUp.verifications.externalAccount.error?.code === "external_account_exists"
+
+      if (userExistsButNeedsToSignIn) {
+         const res = await signIn.create({ transfer: true })
+
+         if (res.status === "complete") {
+            setActive({
+               session: res.createdSessionId,
+            })
+         }
+      }
+
+      // If the user has an OAuth account but does not yet
+      // have an account in your app, you can create an account
+      // for them using the OAuth information.
+      const userNeedsToBeCreated = signIn.firstFactorVerification.status === "transferable"
+
+      if (userNeedsToBeCreated) {
+         const res = await signUp.create({
+            transfer: true,
+         })
+
+         if (res.status === "complete") {
+            setActive({
+               session: res.createdSessionId,
+            })
+         }
+      } else {
+         // If the user has an account in your application
+         // and has an OAuth account connected to it, you can sign them in.
+         try {
+            const { createdSessionId, setActive } = await selectedAuth()
+
+            if (createdSessionId) {
+               setActive({ session: createdSessionId })
+               console.log("OAuth success standard")
+            }
+         } catch (err) {
+            console.error("OAuth error", err)
+         }
+      }
    }
 
    return (
       <BottomSheetView style={styles.modalContainer}>
          {/* Log in with Email */}
-         <TouchableOpacity style={styles.modalBtn}>
+         <TouchableOpacity
+            style={styles.modalBtn}
+            onPress={() => {
+               // TODO: Implement authentication logic with user and email
+               console.log("Login with Email")
+            }}
+         >
             <Ionicons
                name="mail-outline"
                size={20}

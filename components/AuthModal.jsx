@@ -29,11 +29,11 @@ const LOGIN_OPTIONS = [
       icon: require("@/assets/images/login/apple.png"),
       strategy: AuthStrategy.Apple,
    },
-   {
-      text: "Continue with Slack",
-      icon: require("@/assets/images/login/slack.png"),
-      strategy: AuthStrategy.Slack,
-   },
+   // {
+   //    text: "Continue with Slack",
+   //    icon: require("@/assets/images/login/slack.png"),
+   //    strategy: AuthStrategy.Slack,
+   // },
 ]
 
 const AuthModal = ({ authType }) => {
@@ -103,10 +103,10 @@ const AuthModal = ({ authType }) => {
 
             if (createdSessionId) {
                setActive({ session: createdSessionId })
-               console.log("OAuth success standard")
+               console.log(`OAuth success ${strategy}`)
             }
          } catch (err) {
-            console.error("OAuth error", err)
+            console.error("OAuth error", err.message)
          }
       }
    }
@@ -150,8 +150,9 @@ const styles = StyleSheet.create({
    modalContainer: {
       flex: 1,
       alignItems: "flex-start",
-      padding: 20,
-      gap: 20,
+      paddingHorizontal: 20,
+      padding: 35,
+      gap: 35,
    },
    modalBtn: {
       flexDirection: "row",

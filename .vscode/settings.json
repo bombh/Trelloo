@@ -26,5 +26,9 @@
    "prettier.semi": false,
    "prettier.printWidth": 120,
    "prettier.bracketSpacing": true,
-   "prettier.singleAttributePerLine": true
+   "prettier.singleAttributePerLine": true,
+
+   // Deno
+   "deno.enable": true,
+   "deno.lint": true
 }

@@ -20,8 +20,6 @@ export default function Index() {
    const showModal = async (type) => {
       setAuthType(type)
       bottomSheetModalRef.current?.present()
-
-      console.log("type", type)
    }
 
    const openLink = async (url) => {

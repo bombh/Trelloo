@@ -1,8 +1,9 @@
-import { Stack } from "expo-router"
+import { useEffect } from "react"
+import { Stack, useRouter, useSegments } from "expo-router"
 import { ActionSheetProvider } from "@expo/react-native-action-sheet"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { StatusBar } from "expo-status-bar"
-import { ClerkProvider } from "@clerk/clerk-expo"
+import { ClerkProvider, useAuth } from "@clerk/clerk-expo"
 import { SupabaseProvider } from "@/context/SupabaseContext"
 
 import * as SecureStore from "expo-secure-store"
@@ -28,6 +29,22 @@ const tokenCache = {
 }
 
 const RootNavigation = () => {
+   const router = useRouter()
+   const segments = useSegments()
+   const { isLoaded, isSignedIn } = useAuth()
+
+   useEffect(() => {
+      if (!isLoaded) return
+
+      const inAuthGroup = segments[0] === "(auth)"
+
+      if (isSignedIn && !inAuthGroup) {
+         router.replace("/(auth)/(tabs)/account")
+      } else if (!isSignedIn) {
+         router.replace("/")
+      }
+   }, [isSignedIn])
+
    return (
       <SupabaseProvider>
          <Stack>

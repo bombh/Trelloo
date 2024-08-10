@@ -1,7 +1,7 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native"
 import React from "react"
 import { BottomSheetView } from "@gorhom/bottom-sheet"
-import { Ionicons } from "@expo/vector-icons"
+import { MaterialIcons } from "@expo/vector-icons"
 import { useOAuth, useSignIn, useSignUp } from "@clerk/clerk-expo"
 import { useBrowserWarmUp } from "@/hooks/useBrowserWarmUp"
 
@@ -51,8 +51,6 @@ const AuthModal = ({ authType }) => {
    const { startOAuthFlow: slackAuth } = useOAuth({ strategy: AuthStrategy.Slack })
 
    const onSelected = async (strategy) => {
-      console.log("strategy", strategy)
-
       // Select the authentication strategy
       const selectedAuth = {
          [AuthStrategy.Google]: googleAuth,
@@ -118,10 +116,9 @@ const AuthModal = ({ authType }) => {
             style={styles.modalBtn}
             onPress={() => {
                // TODO: Implement authentication logic with user and email
-               console.log("Login with Email")
             }}
          >
-            <Ionicons
+            <MaterialIcons
                name="mail-outline"
                size={20}
             />
